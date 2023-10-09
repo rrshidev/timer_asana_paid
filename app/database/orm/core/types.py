@@ -1,11 +1,12 @@
 from __future__ import annotations
-
 from datetime import datetime
+from typing import Dict
 
 import pytz
 from sqlalchemy import text as t
 from sqlalchemy import types, func
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.dialects.postgresql import JSONB
 from typing_extensions import Annotated
 
 from . import constraints
@@ -13,6 +14,8 @@ from . import constraints
 bool_no_value = Annotated[bool, mapped_column(types.Boolean)]
 bool_false = Annotated[bool, mapped_column(types.Boolean, default=False, nullable=True)]
 bool_true = Annotated[bool, mapped_column(types.Boolean, default=True, nullable=True)]
+
+jsonb = Annotated[Dict, mapped_column(types.JSON, nullable=True)]
 
 created_at_timezone = Annotated[
     datetime, mapped_column(types.DateTime(timezone=True), server_default=func.now())
@@ -58,3 +61,5 @@ str_4 = Annotated[str, mapped_column(types.String(4))]
 text = Annotated[str, mapped_column(types.Text)]
 
 id_pk_type = Annotated[int, constraints.id_pk]
+user_id_fk_type = Annotated[int, constraints.user_id_fk]
+practice_id_fk_type = Annotated[int, constraints.practice_id_fk]

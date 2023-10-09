@@ -2,7 +2,7 @@ from aiogram import Router, Bot
 from aiogram.types import Message, FSInputFile, MenuButtonWebApp, WebAppInfo
 from aiogram.filters import Command, ExceptionMessageFilter
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
 
 from app.database.orm import UserModel
 import bot.const.phrases as phrases
@@ -17,10 +17,10 @@ commands_router = Router()
 async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     first_name = message.from_user.first_name
     markup = markups.user_main_markup()
-    text = phrases.phrase_for_start_first_greeting(data=dict(user_name=first_name))
+    text = phrases.phrase_for_start_first_greeting(data=dict(name=first_name))
 
     # sending image sticker
-    sticker = FSInputFile("static/hello.webp")
+    sticker = FSInputFile("static/buddha.webp")
     await message.answer_sticker(sticker)
 
     # check if user exists
@@ -32,23 +32,25 @@ async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
 
     # if not => create
     if not user:
-        session.add(
-            UserModel(
-                first_name=first_name,
-                tg_id=message.from_user.id,
-                tg_username=message.from_user.username,
-                is_admin=False,
+        await session.execute(
+            insert(UserModel)
+            .values(
+                {
+                    UserModel.first_name: first_name,
+                    UserModel.tg_id: message.from_user.id,
+                    UserModel.tg_username: message.from_user.username,
+                    UserModel.is_admin: False,
+                }
             )
         )
-        await session.commit()
 
-    await bot.set_chat_menu_button(
-        chat_id=message.chat.id,
-        menu_button=MenuButtonWebApp(
-            text="Open Menu",
-            web_app=WebAppInfo(url=f"{application_settings.APP_HOSTNAME}/menu/"),
-        ),
-    )
+    # await bot.set_chat_menu_button(
+    #     chat_id=message.chat.id,
+    #     menu_button=MenuButtonWebApp(
+    #         text="Open Menu",
+    #         web_app=WebAppInfo(url=f"{application_settings.APP_HOSTNAME}/menu/"),
+    #     ),
+    # )
 
     await message.answer(
         text=text,

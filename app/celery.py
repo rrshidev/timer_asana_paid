@@ -16,4 +16,4 @@ celery_app.conf.beat_schedule = {
         'schedule': crontab(),
     }
 }
-celery_app.autodiscover_tasks(['bot.background_tasks', 'bot.background_tasks.periodic'], force=True)
+celery_app.autodiscover_tasks(['bot.background_tasks', 'bot.background_tasks.periodic'], force=True, related_name="periodic")

@@ -1,8 +1,10 @@
 import json
-import logging
 from typing import Callable, Dict, Any, Awaitable
+
 from aiogram import BaseMiddleware
 from aiogram.types import Message
+
+from app import logger
 
 
 class LoggingMiddleware(BaseMiddleware):
@@ -10,9 +12,9 @@ class LoggingMiddleware(BaseMiddleware):
         pass
 
     async def __call__(self, handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]], message: Message, data: Dict[str, Any]) -> Any:
-        logging.info("=============== INCOMING UPDATE ================")
-        logging.info(json.dumps(dict(message), sort_keys=False, indent=4, default=str))
-        logging.info("================================================")
+        logger.info("=============== INCOMING UPDATE ================")
+        logger.info(json.dumps(dict(message), sort_keys=False, indent=4, default=str))
+        logger.info("================================================")
         return await handler(message, data)
 
 
