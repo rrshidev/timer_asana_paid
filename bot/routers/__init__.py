@@ -2,3 +2,6 @@ from .commands import commands_router
 from .messages import messages_router
 from .form import form_router
 from .choose_practice import choose_practice_router
+from .asana_practice import choose_asana_practice_router
+from .pranayama_practice import choose_pranayama_practice_router
+from .meditation_practice import choose_meditation_practice_router

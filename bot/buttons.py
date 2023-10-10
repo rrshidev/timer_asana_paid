@@ -7,7 +7,18 @@ class MainMenuButtons(StrEnum):
 
 
 class ChoosePracticeButtons(StrEnum):
-    ASANA = "Асана"
-    PRANAYAMA = "Пранаяма"
-    MEDITATION = "Медитация"
-    BACK = "Назад"
+    ASANA = "🤸‍♀️ Асана 🤸‍♂️"
+    PRANAYAMA = "🙏 Пранаяма 🙏"
+    MEDITATION = "🧘 Медитация 🧘🏼‍♂️"
+    BACK = "🔙 Назад"
+
+class StepBackButtons(StrEnum):
+    STEPBACK = "Вернуться к предыдущему шагу 🔙"
+    FULLBACK = "Вернуться к выбору практики"
+
+class PracticeStopProcessButtons(StrEnum):
+    PAUSE = "Пауза ⏸"
+    STOP = "Остановить практику ⏹"
+
+class PracticeContinueProcessButtons(StrEnum):
+    RESUME = "Возобновить ▶"

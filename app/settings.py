@@ -61,12 +61,39 @@ class RedisSettings(BaseSettings):
     REDIS_COMMANDER_PASSWORD: str
 
     @property
-    def url(self) -> str:
+    def broker_url(self) -> str:
         host, port = (
             self.REDIS_HOST,
             self.REDIS_PORT,
         )
 
         return f'redis://{host}:{port}/0'
+    
+    @property
+    def result_backend_url(self) -> str:
+        host, port = (
+            self.REDIS_HOST,
+            self.REDIS_PORT,
+        )
+
+        return f'redis://{host}:{port}/1'
+    
+    @property
+    def fsm_url(self) -> str:
+        host, port = (
+            self.REDIS_HOST,
+            self.REDIS_PORT,
+        )
+
+        return f'redis://{host}:{port}/2'
+    
+    @property
+    def states_url(self) -> str:
+        host, port = (
+            self.REDIS_HOST,
+            self.REDIS_PORT,
+        )
+
+        return f'redis://{host}:{port}/3'
 
 redis_settings = RedisSettings()

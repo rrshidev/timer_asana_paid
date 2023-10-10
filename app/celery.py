@@ -7,8 +7,8 @@ from app.settings import redis_settings
 
 celery_app = Celery(
     __name__,
-    backend=redis_settings.url,
-    broker=redis_settings.url,
+    backend=redis_settings.result_backend_url,
+    broker=redis_settings.broker_url,
 )
 celery_app.conf.beat_schedule = {
     'test': {

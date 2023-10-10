@@ -9,11 +9,14 @@ import bot.const.phrases as phrases
 from bot import markups
 from app.settings import application_settings
 from bot.background_tasks import send_message_task
+from bot.filters import ButtonFilter
+from bot.buttons import ChoosePracticeButtons
+
 
 commands_router = Router()
 
-
 @commands_router.message(Command(commands=["start"]))
+@commands_router.message(ButtonFilter(button=ChoosePracticeButtons.BACK))
 async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     first_name = message.from_user.first_name
     markup = markups.user_main_markup()
