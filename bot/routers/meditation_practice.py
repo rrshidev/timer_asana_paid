@@ -31,7 +31,7 @@ async def meditation_practice(message: Message, state: FSMContext) -> None:
 @choose_meditation_practice_router.message(Meditation.time, F.text.isdigit())
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     minutes = message.text
-    # await state.clear()
+    await state.clear()
     
     await message.answer(
         text="Right",

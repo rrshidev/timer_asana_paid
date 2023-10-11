@@ -65,6 +65,138 @@ def step_back_markup() -> ReplyKeyboardMarkup:
     
     return builder.as_markup(resize_keyboard=True)
 
+def step_asana_count_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.ASANACOUNTBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_asana_time_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.ASANATIMEBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_asana_relax_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.ASANARELAXBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_shavasana_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.SHAVASANABACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+
+def step_prana_count_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.PRANACOUNTBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_prana_time_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.PRANATIMEBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_prana_reload_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.PRANARELOADBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+def step_prana_medit_back_markup() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.PRANAMEDITBACK.value,
+        ),
+    )
+    builder.row(
+        KeyboardButton(
+            text=StepBackButtons.FULLBACK.value,
+        ),
+    )
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+#InllineButtons ---->
 
 def practice_stop_process_markup() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
