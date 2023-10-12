@@ -1,6 +1,6 @@
-from .test_task import test_task
+from .meditation import timer as meditation_timer
 
 
 __all__ = (
-    "test_task",
+    "meditation_timer",
 )

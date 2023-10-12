@@ -8,7 +8,7 @@ services:
     # build:
     #   context: ${PWD}/docker
     command: >
-      bash -c "celery -A app.celery:celery_app worker -B --loglevel=info"
+      bash -c "celery -A app.celery_config:celery_app worker --loglevel=info"
     volumes:
       - ${PWD}:/app
     env_file:
@@ -18,20 +18,20 @@ services:
     networks:
       - local
 
-  # celery_beat:
-  #   image: embassy_bot:latest
-  #   container_name: bot_celery_beat
-  #   restart: unless-stopped
-  #   command: >
-  #     bash -c "celery -A app.celery:celery_app beat --loglevel=info"
-  #   volumes:
-  #     - ${PWD}:/app
-  #   env_file:
-  #     - ${PWD}/.env
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - local
+  celery_beat:
+    image: embassy_bot:latest
+    container_name: bot_celery_beat
+    restart: unless-stopped
+    command: >
+      bash -c "celery -A app.celery_config:celery_app beat -S redbeat.RedBeatScheduler --loglevel=info"
+    volumes:
+      - ${PWD}:/app
+    env_file:
+      - ${PWD}/.env
+    depends_on:
+      - redis
+    networks:
+      - local
 
 
   # flower:
@@ -41,7 +41,7 @@ services:
   #   # build:
   #   #   context: ${PWD}/docker
   #   command: >
-  #     bash -c "celery -A app.celery flower --port=5555"
+  #     bash -c "celery -A app.celery_config flower --port=5555"
   #   ports:
   #     - 5555:5555
   #   # volumes:

@@ -1,7 +1,7 @@
 import time
 import asyncio
 
-from app.celery import celery_app
+from app.celery_config import celery_app
 
 
 @celery_app.task()

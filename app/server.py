@@ -20,7 +20,7 @@ app = FastAPI(
 )
 
 templates = Jinja2Templates(directory="templates")
-
+    
 
 @app.get("/ifrinjhreiioqnrpwwtrte")
 async def root():

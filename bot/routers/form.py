@@ -21,63 +21,7 @@ from bot import const, markups
 form_router = Router()
 
 
-def timer_message(total: int, rest: int = 0, status: bool = True):
-    text = f'Идёт медитация\n\nВыбранное время: {total} минут'
-    if rest:
-        text += f'\n\nОставшееся время: {rest}'
-    text += f'\n\nRunning' if status else f'\n\nPaused'
-
-    return text
-
-async def get_time(self, message, count: int):
-        sec_count = 60 * count
-        
-        while sec_count > 0:
-            if const.timer_stopped:
-                break
-
-            mins, secs = divmod(sec_count, 60)
-            timer = '{:02d}:{:02d}'.format(mins, secs)
-
-            if not const.timer_paused:        
-                sec_count -= 1
-                const.timer_rest = timer
-                try:
-                    await message.edit_text(
-                        text=timer_message(total=count, rest=timer, status=not const.timer_paused),
-                        reply_markup=markups.practice_stop_process(),
-                    )
-                except exceptions.MessageNotModified:
-                    pass
-
-            await asyncio.sleep(1)
-        
-        if const.timer_stopped:
-            text = "Таймер остановлен!"
-            markup = markups.choose_practice()
-        if not const.timer_stopped:    
-            text = 'Практика окончена!'
-            markup = markups.step_back_markup()
-            
-        return await message.reply(text=text, reply_markup=markup)
-    
-
 # @form_router.message()
-async def set_meditation_time(message: Message, state: FSMContext) -> None:
-    const.timer_stopped = False
-    const.timer_paused = False
-    time_pattern = r'[+]?\d+$'
-    count = int(message.text)
-    const.timer_total = count
-    if re.fullmatch(time_pattern, message.text):
-        edit_message = await message.answer(
-            text=timer_message(total=count),
-            reply_markup=markups.practice_stop_process(),
-        )
-        asyncio.create_task(get_time(message=edit_message, count=count))
-        await state.finish()
-    
-
 @form_router.message(Command(commands=["run"]))
 async def command_start(message: Message, state: FSMContext) -> None:
     await state.set_state(Form.name)

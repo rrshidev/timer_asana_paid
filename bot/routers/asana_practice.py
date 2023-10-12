@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
@@ -97,9 +97,11 @@ async def wrong_relax_time(message: Message, state: FSMContext) -> None:
 
 @choose_asana_practice_router.message(Asana.shavasana_time, F.text.isdigit())
 async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
-    text = "All RIGTH! Lets start Timer!"
-    markup = markups.step_shavasana_back_markup()
+    sticker = FSInputFile("static/yogaasana.webp")
+    await message.answer_sticker(sticker)
     shavasana_time = message.text
+    text = "Хорошей практики асан 🙏🏿"
+    markup = markups.step_shavasana_back_markup()
     await state.clear()
     await message.answer(
         text=text,

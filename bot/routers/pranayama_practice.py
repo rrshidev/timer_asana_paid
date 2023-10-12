@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
@@ -99,9 +99,13 @@ async def wrong_reload_time(message: Message, state: FSMContext) -> None:
 
 @choose_pranayama_practice_router.message(PranaYama.meditation_time, F.text.isdigit())
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
-    text = 'All rigth! GO GO GO Timer!'
-    markup = markups.step_prana_medit_back_markup()
+    sticker = FSInputFile("static/pranayama.webp")
+    gif = FSInputFile("static/breath.mp4")
     metation_time = message.text
+    text = 'Хорошей практики! Начинай дышать... Ом... 🙏'
+    markup = markups.step_prana_medit_back_markup()
+    await message.answer_sticker(sticker)
+    await message.answer_animation(gif)
     await state.clear()
     await message.answer(
         text=text,
