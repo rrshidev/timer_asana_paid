@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+# from fastapi.responses import HTMLResponse
+# from fastapi.templating import Jinja2Templates
 from aiogram.types import Update
 
-from .settings import application_settings
+from .settings import application_settings, redis_settings
 from bot.bot import dp, bot
 from app import logger
 from app.core.depends import DatabaseSession
+from app.services import RedisConnector
 
 
 app = FastAPI(
@@ -19,8 +20,8 @@ app = FastAPI(
     redoc_url=application_settings.REDOC_URL,
 )
 
-templates = Jinja2Templates(directory="templates")
-    
+# templates = Jinja2Templates(directory="templates")
+
 
 @app.get("/ifrinjhreiioqnrpwwtrte")
 async def root():

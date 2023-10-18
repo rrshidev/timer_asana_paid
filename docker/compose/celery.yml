@@ -8,7 +8,6 @@ services:
     # build:
     #   context: ${PWD}/docker
     command: >
-      bash -c "celery -A app.celery_config:celery_app worker --loglevel=info"
     volumes:
       - ${PWD}:/app
     env_file:
@@ -23,7 +22,6 @@ services:
     container_name: bot_celery_beat
     restart: unless-stopped
     command: >
-      bash -c "celery -A app.celery_config:celery_app beat -S redbeat.RedBeatScheduler --loglevel=info"
     volumes:
       - ${PWD}:/app
     env_file:
