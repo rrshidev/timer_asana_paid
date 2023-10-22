@@ -49,8 +49,8 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
 
     total_time = int(message.text) 
 
-    sticker = FSInputFile("static/buddha_start_timer.webp")
-    await message.answer_sticker(sticker)
+    gif = FSInputFile("static/meditation.gif")
+    await message.answer_animation(gif)
 
     edit_message = await message.answer(
         text=timer_message(total=total_time),
@@ -152,8 +152,9 @@ async def callback_stop(callback_query: types.CallbackQuery):
 @choose_meditation_practice_router.message(Meditation.time, ~F.text.isdigit())
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     
+    await state.set_state(Meditation.time)
     await message.answer(
-        text="Не похоже на целое число или на формат 00:00, где первая пара чисел - минуты, вторая пара чисел - секунды",
+        text=phrases.phrase_wrong_meditation()
     )
 
 
