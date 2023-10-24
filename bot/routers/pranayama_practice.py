@@ -1,3 +1,5 @@
+import re
+
 from aiogram import Router, F, types
 from aiogram.types import Message, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
@@ -15,6 +17,8 @@ from bot.const import const
 
 
 choose_pranayama_practice_router = Router()
+
+time_pattern = r'^\d{2}:\d{2}$'
 
 class PranaYama(StatesGroup):
     count = State()
@@ -63,10 +67,19 @@ async def wrong_prana_count(message: Message, state: FSMContext) -> None:
 
 
 @choose_pranayama_practice_router.message(PranaYama.prana_time, F.text.isdigit())
+@choose_pranayama_practice_router.message(PranaYama.prana_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 @choose_pranayama_practice_router.message(ButtonFilter(button=StepBackButtons.PRANARELOADBACK))
 async def enter_prana_time(message: Message, state: FSMContext) -> None:
    
-    await state.update_data(prana_time=message.text)
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(prana_time=total_time)
+    
+    else:
+        
+        await state.update_data(prana_time=message.text)
    
     text = phrases.phrase_prana_reload()
     markup = markups.step_prana_time_back_markup()
@@ -79,6 +92,7 @@ async def enter_prana_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_pranayama_practice_router.message(PranaYama.prana_time, ~F.text.isdigit()) 
+@choose_pranayama_practice_router.message(PranaYama.prana_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def wrong_prana_time(message: Message, state: FSMContext) -> None:
     
     await state.set_state(PranaYama.prana_time)
@@ -87,11 +101,20 @@ async def wrong_prana_time(message: Message, state: FSMContext) -> None:
     )
 
 @choose_pranayama_practice_router.message(PranaYama.reload_time, F.text.isdigit())
+@choose_pranayama_practice_router.message(PranaYama.reload_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 @choose_pranayama_practice_router.message(ButtonFilter(button=StepBackButtons.PRANAMEDITBACK))
 async def enter_reload_time(message: Message, state: FSMContext) -> None:
-   
-    await state.update_data(reload_time=message.text)
+
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(reload_time=total_time)
     
+    else:
+        
+        await state.update_data(reload_time=message.text)
+   
     text = phrases.phrase_prana_meditaion_time()
     markup = markups.step_prana_reload_back_markup()
    
@@ -103,6 +126,7 @@ async def enter_reload_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_pranayama_practice_router.message(PranaYama.reload_time, ~F.text.isdigit()) 
+@choose_pranayama_practice_router.message(PranaYama.reload_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def wrong_reload_time(message: Message, state: FSMContext) -> None:
     
     await state.set_state(PranaYama.reload_time)
@@ -112,11 +136,20 @@ async def wrong_reload_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_pranayama_practice_router.message(PranaYama.meditation_time, F.text.isdigit())
+@choose_pranayama_practice_router.message(PranaYama.meditation_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
    
-    await state.update_data(meditation_time=message.text)
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(meditation_time=total_time)
+    
+    else:
+        
+        await state.update_data(meditation_time=message.text)
    
-    gif = FSInputFile("static/pranayama.gif")
+    gif = FSInputFile("static/pranayama.mp4")
     text = 'Хорошей практики! Начинай дышать... Ом... 🙏'
     markup = markups.step_prana_medit_back_markup()
    
@@ -137,6 +170,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_pranayama_practice_router.message(PranaYama.meditation_time, ~F.text.isdigit()) 
+@choose_pranayama_practice_router.message(PranaYama.meditation_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     await state.set_state(PranaYama.meditation_time)
     await message.answer(
@@ -147,9 +181,9 @@ async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
 async def practice_time(message, data):
    
     count = int(data['count'])
-    prana_time = int(data['prana_time']) * 60
+    prana_time = int(data['prana_time'])
     reload_time = int(data['reload_time'])
-    meditation_time = int(data['meditation_time']) * 60  
+    meditation_time = int(data['meditation_time'])
     cnt = 0
     count_while = count + 1
     

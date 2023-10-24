@@ -1,3 +1,5 @@
+import re
+
 from aiogram import Router, F, types
 from aiogram.types import Message, FSInputFile
 from aiogram.fsm.state import State, StatesGroup
@@ -15,6 +17,8 @@ from bot.const import const
 
 
 choose_asana_practice_router = Router()
+
+time_pattern = r'^\d{2}:\d{2}$'
 
 class Asana(StatesGroup):
     count = State()
@@ -62,11 +66,20 @@ async def wrong_asana_count(message: Message, state: FSMContext) -> None:
 
 
 @choose_asana_practice_router.message(Asana.asana_time, F.text.isdigit())
+@choose_asana_practice_router.message(Asana.asana_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 @choose_asana_practice_router.message(ButtonFilter(button=StepBackButtons.ASANARELAXBACK))
 async def enter_asana_time(message: Message, state: FSMContext) -> None:
+
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(asana_time=total_time)
     
-    await state.update_data(asana_time=message.text)
-    
+    else:
+        
+        await state.update_data(asana_time=message.text)
+        
     text = phrases.phrase_asana_relax_time()
     markup = markups.step_asana_time_back_markup()
    
@@ -78,6 +91,8 @@ async def enter_asana_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_asana_practice_router.message(Asana.asana_time, ~F.text.isdigit())
+@choose_asana_practice_router.message(Asana.asana_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
+
 async def wrong_asana_time(message: Message, state: FSMContext) -> None:
     await state.set_state(Asana.asana_time)
     await message.answer(
@@ -86,11 +101,20 @@ async def wrong_asana_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_asana_practice_router.message(Asana.relax_time, F.text.isdigit())
+@choose_asana_practice_router.message(Asana.relax_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 @choose_asana_practice_router.message(ButtonFilter(button=StepBackButtons.SHAVASANABACK))
 async def enter_relax_time(message: Message, state: FSMContext) -> None:
     
-    await state.update_data(relax_time=message.text)
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(relax_time=total_time)
     
+    else:
+        
+        await state.update_data(relax_time=message.text)
+
     text = phrases.phrase_shavasana_time()
     markup = markups.step_asana_relax_back_markup()
     
@@ -102,6 +126,7 @@ async def enter_relax_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_asana_practice_router.message(Asana.relax_time, ~F.text.isdigit())
+@choose_asana_practice_router.message(Asana.relax_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def wrong_relax_time(message: Message, state: FSMContext) -> None:
    
     await state.set_state(Asana.relax_time)
@@ -110,11 +135,20 @@ async def wrong_relax_time(message: Message, state: FSMContext) -> None:
     )
 
 @choose_asana_practice_router.message(Asana.shavasana_time, F.text.isdigit())
+@choose_asana_practice_router.message(Asana.shavasana_time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
     
-    await state.update_data(shavasana_time=message.text)
-
-    gif = FSInputFile("static/asana.gif")
+    if re.match(time_pattern, message.text):
+        
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+        await state.update_data(shavasana_time=total_time)
+    
+    else:
+        
+        await state.update_data(shavasana_time=message.text)
+    
+    gif = FSInputFile("static/asana.mp4")
     text = "Хорошей практики асан 🙏🏿"
     markup = markups.step_shavasana_back_markup()
 
@@ -135,6 +169,7 @@ async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
 
 
 @choose_asana_practice_router.message(Asana.shavasana_time, ~F.text.isdigit())
+@choose_asana_practice_router.message(Asana.shavasana_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def wrong_shavasana_time(message: Message, state: FSMContext) -> None:
     await state.set_state(Asana.shavasana_time)
     await message.answer(
@@ -147,7 +182,7 @@ async def asana_timer(message, data):
     count = int(data['count'])
     asana_time = int(data['asana_time'])
     relax_time = int(data['relax_time'])
-    shavasana_time = int(data['shavasana_time']) * 60
+    shavasana_time = int(data['shavasana_time'])
     cnt = 0
     count_while = count + 1
 

@@ -1,3 +1,5 @@
+import re
+
 from aiogram import Router, F, types
 from aiogram.types import Message, FSInputFile
 from aiogram.fsm.context import FSMContext
@@ -21,8 +23,8 @@ class Meditation(StatesGroup):
     time = State()
 
 
-def timer_message(total: int, rest: int = 0, status: bool = True):
-    text = f'Идёт медитация\n\nВыбранное время: {total} мин'
+def timer_message(total, rest: int = 0, status: bool = True):
+    text = f'Идёт медитация\n\nВыбранное время: {total}'
     if rest:
         text += f'\n\nОставшееся время: {rest}'
     text += f'\n\nRunning' if status else f'\n\nPaused'
@@ -43,13 +45,24 @@ async def meditation_practice(message: Message, state: FSMContext) -> None:
 
 
 @choose_meditation_practice_router.message(Meditation.time, F.text.isdigit())
+@choose_meditation_practice_router.message(Meditation.time, F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
+       
     const.timer_stoped = False
     const.timer_paused = False
 
-    total_time = int(message.text) 
+    time_pattern = r'^\d{2}:\d{2}$'
+    
+    if re.match(time_pattern, message.text):
 
-    gif = FSInputFile("static/meditation.gif")
+        mins, secs = (message.text.split(':'))
+        total_time = int(mins)*60 + int(secs)
+    
+    else:
+
+        total_time = int(message.text) * 60
+
+    gif = FSInputFile("static/meditation.mp4")
     await message.answer_animation(gif)
 
     edit_message = await message.answer(
@@ -60,12 +73,16 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await state.clear()
 
 
-async def get_time(message, count: int):
-        print('test1', const.timer_paused, const.timer_stoped)
-        sec_count = 60 * count
+async def get_time(message, count):
+        
+        sec_count = count
+        seconds = count
+        minutes = seconds // 60
+        seconds %= 60
+        timer_total = '{:02d} мин. {:02d} сек.'.format(minutes, seconds)
         
         while sec_count > 0:
-            print('test:', sec_count, const.timer_paused, const.timer_stoped)
+
             if const.timer_stoped:
                 break
 
@@ -77,7 +94,7 @@ async def get_time(message, count: int):
                 const.timer_rest = timer
                 try:
                     await message.edit_text(
-                        text=timer_message(total=count, rest=timer, status=not const.timer_paused),
+                        text=timer_message(total=timer_total, rest=timer, status=not const.timer_paused),
                         reply_markup=markups.practice_stop_process_markup(),
                     )
                 except:
@@ -87,7 +104,7 @@ async def get_time(message, count: int):
                 const.timer_rest = timer
                 try:
                     await message.edit_text(
-                        text=timer_message(total=count, rest=timer, status=not const.timer_paused),
+                        text=timer_message(total=timer_total, rest=timer, status=not const.timer_paused),
                         reply_markup=markups.practice_continue_process_markup(),
                     )
                 except:
@@ -150,6 +167,7 @@ async def callback_stop(callback_query: types.CallbackQuery):
 
 
 @choose_meditation_practice_router.message(Meditation.time, ~F.text.isdigit())
+@choose_meditation_practice_router.message(Meditation.time, ~F.text.regexp(r'^\d{2}:\d{2}$'))
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     
     await state.set_state(Meditation.time)
