@@ -1,3 +1,6 @@
+from .enums import TimerStatus
+
+
 def phrase_for_start_first_greeting(first_name: str):
     return f"<b>Намаскар, {first_name}! Я таймер-бот для йогических практик!\n\n Рекомендую в настройках этого чата установить другую мелодию оповещения, чтобы ты мог отличать сообщения таймера от других по звуку и не отвлекался от практики!\n\n\nДА ПРИБУДЕТ С ТОБОЙ СИЛА!</b>"
 
@@ -53,14 +56,18 @@ def phrase_for_answer_to_main_menu_buttons(button_title: str):
     return f"You pressed {button_title}"
 
 
-def phrase_for_notify_admins_about_some_event(user_name: str, user_nickname: str, weekday: str, date: str, time: str):
-    return f'❗️{user_name} {user_nickname} что-то сделал в {weekday} <b>{date}</b> в <b>{time}</b>'
+def phrase_for_notify_admins_about_some_event(
+    user_name: str, user_nickname: str, weekday: str, date: str, time: str
+):
+    return f"❗️{user_name} {user_nickname} что-то сделал в {weekday} <b>{date}</b> в <b>{time}</b>"
 
 
-def phrase_for_timer_message(total: str, rest: str, status: bool = True):
+def phrase_for_timer_message(
+    total: str, rest: str, status: TimerStatus = TimerStatus.RUNNING
+):
     text = f"Идёт медитация\n\nВыбранное время: {total}"
     if rest:
         text += f"\n\nОставшееся время: {rest}"
-    text += f"\n\nRunning" if status else f"\n\nPaused"
+    text += f"\n\n----------[ {status.value} ]----------"
 
     return text

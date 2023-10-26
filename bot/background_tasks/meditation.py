@@ -29,10 +29,6 @@ async def tick(user_id: id) -> None:
 
         logger.info(f"DATA {user_timer_data}")
 
-        timer_paused: bool = bool(int(user_timer_data.get("timer_paused")))
-        if timer_paused:
-            break
-
         total_sec: int = int(user_timer_data.get("total_sec"))
         rest_sec: int = int(user_timer_data.get("rest_sec"))
 
@@ -50,7 +46,7 @@ async def tick(user_id: id) -> None:
             text=phrases.phrase_for_timer_message(
                 total=get_time_str(seconds=total_sec),
                 rest=get_time_str(seconds=rest_sec),
-                status=True,
+                status=enums.TimerStatus.RUNNING,
             ),
             reply_markup=markups.practice_stop_process_markup(),
         )

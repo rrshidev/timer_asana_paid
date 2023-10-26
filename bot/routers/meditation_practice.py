@@ -52,8 +52,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     total_time_str = get_time_str(seconds=total_time.total_seconds())
     edit_message = await message.answer(
         text=phrases.phrase_for_timer_message(
-            total=total_time_str,
-            rest=total_time_str,
+            total=total_time_str, rest=total_time_str, status=enums.TimerStatus.RUNNING
         ),
         reply_markup=markups.practice_stop_process_markup(),
     )
@@ -70,7 +69,6 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
             total_sec=int(total_time.total_seconds()),
             rest_sec=int(total_time.total_seconds()),
             message_id=edit_message.message_id,
-            timer_paused=0,
         ),
     )
 
@@ -86,7 +84,6 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
             task_id=task.id,
         ),
     )
-    logger.info(f"MID {edit_message.message_id}")
 
     await state.set_state(Meditation.running)
 
@@ -130,7 +127,7 @@ async def pause_mediation(
         text=phrases.phrase_for_timer_message(
             total=total_time_str,
             rest=rest_time_str,
-            status=False,
+            status=enums.TimerStatus.PAUSED,
         ),
         reply_markup=markups.practice_continue_process_markup(),
     )
@@ -138,14 +135,105 @@ async def pause_mediation(
     await query.answer()
 
 
-# @choose_meditation_practice_router.message(Meditation.time, ~F.text.isdigit())
-# async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
-#     await message.answer(
-#         text="Wrong",
-#     )
+@choose_meditation_practice_router.callback_query(
+    Meditation.running, PracticeTimerCallback.filter(F.action == "stop")
+)
+async def pause_mediation(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+) -> None:
+    user_entry = get_redis_entry(
+        user_id=query.from_user.id,
+        practice=enums.Practices.MEDITATION.value,
+    )
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=user_entry,
+    )
 
-# @choose_meditation_practice_router.message(Meditation.time, ~F.text.isdigit())
-# async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
-#     await message.answer(
-#         text="Wrong",
-#     )
+    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
+    message_id: int = user_timer_data.get("message_id")
+    total_time_str = get_time_str(seconds=int(user_timer_data.get("total_sec")))
+    rest_time_str = get_time_str(seconds=int(user_timer_data.get("rest_sec")))
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_timer_message(
+            total=total_time_str,
+            rest=rest_time_str,
+            status=enums.TimerStatus.STOPPED,
+        ),
+        reply_markup=None,
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            total_sec=0,
+            rest_sec=0,
+        ),
+    )
+
+    await query.answer()
+
+
+@choose_meditation_practice_router.callback_query(
+    Meditation.running, PracticeTimerCallback.filter(F.action == "resume")
+)
+async def pause_mediation(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+) -> None:
+    user_entry = get_redis_entry(
+        user_id=query.from_user.id,
+        practice=enums.Practices.MEDITATION.value,
+    )
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=user_entry,
+    )
+
+    message_id: int = user_timer_data.get("message_id")
+    total_time_str = get_time_str(seconds=int(user_timer_data.get("total_sec")))
+    rest_time_str = get_time_str(seconds=int(user_timer_data.get("rest_sec")))
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_timer_message(
+            total=total_time_str, rest=rest_time_str, status=enums.TimerStatus.RUNNING
+        ),
+        reply_markup=markups.practice_stop_process_markup(),
+    )
+
+    task: AsyncResult = meditation_timer_task.apply_async(
+        args=[query.from_user.id],
+        countdown=0,
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            task_id=task.id,
+        ),
+    )
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_timer_message(
+            total=total_time_str,
+            rest=rest_time_str,
+            status=enums.TimerStatus.STOPPED,
+        ),
+        reply_markup=markups.practice_continue_process_markup(),
+    )
+
+    await query.answer()
