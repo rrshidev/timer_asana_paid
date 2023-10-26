@@ -18,8 +18,6 @@ async def tick(user_id: id) -> None:
         practice=enums.Practices.MEDITATION.value,
     )
 
-    logger.info(f"ENTRY {user_entry}")
-
     while True:
         start_time = perf_counter()
         user_timer_data = RedisStorage.hgetall(
@@ -27,14 +25,10 @@ async def tick(user_id: id) -> None:
             name=user_entry,
         )
 
-        logger.info(f"DATA {user_timer_data}")
-
         total_sec: int = int(user_timer_data.get("total_sec"))
         rest_sec: int = int(user_timer_data.get("rest_sec"))
 
         message_id: int = int(user_timer_data.get("message_id"))
-
-        logger.info(f"TOTAL {total_sec} {rest_sec}")
 
         # descrease seconds
         if rest_sec > 0:

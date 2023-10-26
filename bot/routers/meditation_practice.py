@@ -106,8 +106,6 @@ async def pause_mediation(
     state: FSMContext,
     bot: Bot,
 ) -> None:
-    logger.info(f"GOTCHA {callback_data} |")
-
     user_timer_data = RedisStorage.hgetall(
         database=3,
         name=get_redis_entry(
