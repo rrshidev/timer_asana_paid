@@ -57,7 +57,7 @@ async def tick(user_id: id) -> None:
             await bot_instance.send_message(
                 chat_id=user_id,
                 text="Практика окончена!",
-                reply_markup=markups.step_back_markup(),
+                reply_markup=markups.choose_practice_markup(),
             )
             break
 

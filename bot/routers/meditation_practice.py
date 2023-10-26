@@ -136,7 +136,7 @@ async def pause_mediation(
 @choose_meditation_practice_router.callback_query(
     Meditation.running, PracticeTimerCallback.filter(F.action == "stop")
 )
-async def pause_mediation(
+async def stop_mediation(
     query: CallbackQuery,
     callback_data: PracticeTimerCallback,
     state: FSMContext,
@@ -166,6 +166,11 @@ async def pause_mediation(
         ),
         reply_markup=None,
     )
+    await bot.send_message(
+        chat_id=query.from_user.id,
+        text="Практика окончена!",
+        reply_markup=markups.choose_practice_markup(),
+    )
 
     RedisStorage.hset(
         database=3,
@@ -182,7 +187,7 @@ async def pause_mediation(
 @choose_meditation_practice_router.callback_query(
     Meditation.running, PracticeTimerCallback.filter(F.action == "resume")
 )
-async def pause_mediation(
+async def resume_mediation(
     query: CallbackQuery,
     callback_data: PracticeTimerCallback,
     state: FSMContext,
@@ -221,17 +226,6 @@ async def pause_mediation(
         mapping=dict(
             task_id=task.id,
         ),
-    )
-
-    await bot.edit_message_text(
-        chat_id=query.from_user.id,
-        message_id=message_id,
-        text=phrases.phrase_for_timer_message(
-            total=total_time_str,
-            rest=rest_time_str,
-            status=enums.TimerStatus.STOPPED,
-        ),
-        reply_markup=markups.practice_continue_process_markup(),
     )
 
     await query.answer()
