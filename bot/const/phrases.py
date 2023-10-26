@@ -65,9 +65,9 @@ def phrase_for_notify_admins_about_some_event(
 def phrase_for_timer_message(
     total: str, rest: str, status: TimerStatus = TimerStatus.RUNNING
 ):
-    text = f"Идёт медитация\n\nВыбранное время: {total}"
+    text = f"=========================\n\nИдёт медитация\n\nВыбранное время: {total}"
     if rest:
         text += f"\n\nОставшееся время: {rest}"
-    text += f"\n\n----------[ {status.value} ]----------"
+    text += f"\n\n==========[ {status.value} ]=========="
 
     return text
