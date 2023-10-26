@@ -40,7 +40,7 @@ async def meditation_practice(message: Message, state: FSMContext) -> None:
     )
 
 
-@choose_meditation_practice_router.message(Meditation.time, F.text.isdigit())
+@choose_meditation_practice_router.message(Meditation.time, F.text.regexp(r"^\d+(:\d+)?$"))
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     total_time = str_to_time(input=message.text)
 
@@ -82,7 +82,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await state.set_state(Meditation.running)
 
 
-@choose_meditation_practice_router.message(Meditation.time, ~F.text.isdigit())
+@choose_meditation_practice_router.message(Meditation.time, ~F.text.regexp(r"^\d+(:\d+)?$"))
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     await message.answer(
         text="Wrong",
