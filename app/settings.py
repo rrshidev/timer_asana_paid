@@ -24,6 +24,7 @@ application_settings = ApplicationSettings()
 class BotSettings(BaseSettings):
     TOKEN: str = Field(validation_alias="BOT_TOKEN")
 
+
 bot_settings = BotSettings()
 
 
@@ -61,39 +62,25 @@ class RedisSettings(BaseSettings):
     REDIS_COMMANDER_PASSWORD: str
 
     @property
-    def broker_url(self) -> str:
+    def url(self) -> str:
         host, port = (
             self.REDIS_HOST,
             self.REDIS_PORT,
         )
 
-        return f'redis://{host}:{port}/0'
-    
+        return f"redis://{host}:{port}"
+
+    @property
+    def broker_url(self) -> str:
+        return f"{self.url}/0"
+
     @property
     def result_backend_url(self) -> str:
-        host, port = (
-            self.REDIS_HOST,
-            self.REDIS_PORT,
-        )
+        return f"{self.url}/1"
 
-        return f'redis://{host}:{port}/1'
-    
     @property
     def fsm_url(self) -> str:
-        host, port = (
-            self.REDIS_HOST,
-            self.REDIS_PORT,
-        )
+        return f"{self.url}/2"
 
-        return f'redis://{host}:{port}/2'
-    
-    @property
-    def states_url(self) -> str:
-        host, port = (
-            self.REDIS_HOST,
-            self.REDIS_PORT,
-        )
-
-        return f'redis://{host}:{port}/3'
 
 redis_settings = RedisSettings()

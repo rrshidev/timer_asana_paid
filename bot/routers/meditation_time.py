@@ -9,7 +9,7 @@ meditation_time_router = Router()
 
 
 @meditation_time_router.message(Message(text=str))
-async def medeitation_time(message: Message) -> None:
+async def meditation_time(message: Message) -> None:
     text = phrases.phrase_meditation()
     markup = markups.step_back_markup()
 

@@ -15,12 +15,13 @@ from bot.buttons import ChoosePracticeButtons
 
 commands_router = Router()
 
+
 @commands_router.message(Command(commands=["start"]))
 @commands_router.message(ButtonFilter(button=ChoosePracticeButtons.BACK))
 async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     first_name = message.from_user.first_name
     markup = markups.user_main_markup()
-    text = phrases.phrase_for_start_first_greeting(data=dict(name=first_name))
+    text = phrases.phrase_for_start_first_greeting(first_name=first_name)
 
     # sending image sticker
     sticker = FSInputFile("static/buddha.webp")
@@ -36,8 +37,7 @@ async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     # if not => create
     if not user:
         await session.execute(
-            insert(UserModel)
-            .values(
+            insert(UserModel).values(
                 {
                     UserModel.first_name: first_name,
                     UserModel.tg_id: message.from_user.id,

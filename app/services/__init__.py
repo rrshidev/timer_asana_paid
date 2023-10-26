@@ -1,10 +1,7 @@
-from .redis import RedisConnector
+from .redis import RedisStorage as RS
 
 from app.settings import redis_settings
 
+RedisStorage = RS(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT)
 
-rc = RedisConnector(url=redis_settings.states_url)
-
-__all__ = (
-    "rc",
-)
+__all__ = ("RedisStorage",)

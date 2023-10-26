@@ -7,24 +7,25 @@ from aiogram.types import (
 )
 
 from .buttons import (
-    MainMenuButtons, 
-    ChoosePracticeButtons, 
-    StepBackButtons, 
-    PracticeStopProcessButtons, 
+    MainMenuButtons,
+    ChoosePracticeButtons,
+    StepBackButtons,
+    PracticeStopProcessButtons,
     PracticeContinueProcessButtons,
 )
+from .callbacks import PracticeTimerCallback
 
 
 def user_main_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
-    
+
     builder.row(
         KeyboardButton(
             text=MainMenuButtons.PRACTICE_TYPE.value,
         ),
         KeyboardButton(
             text=MainMenuButtons.SETS.value,
-        )
+        ),
     )
 
     return builder.as_markup(resize_keyboard=True)
@@ -73,8 +74,9 @@ def step_back_markup() -> ReplyKeyboardMarkup:
             text=StepBackButtons.FULLBACK.value,
         ),
     )
-    
+
     return builder.as_markup(resize_keyboard=True)
+
 
 def step_asana_count_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
@@ -92,6 +94,7 @@ def step_asana_count_back_markup() -> ReplyKeyboardMarkup:
 
     return builder.as_markup(resize_keyboard=True)
 
+
 def step_asana_time_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
 
@@ -108,6 +111,7 @@ def step_asana_time_back_markup() -> ReplyKeyboardMarkup:
 
     return builder.as_markup(resize_keyboard=True)
 
+
 def step_asana_relax_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
 
@@ -123,6 +127,7 @@ def step_asana_relax_back_markup() -> ReplyKeyboardMarkup:
     )
 
     return builder.as_markup(resize_keyboard=True)
+
 
 def step_shavasana_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
@@ -141,7 +146,6 @@ def step_shavasana_back_markup() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-
 def step_prana_count_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
 
@@ -157,6 +161,7 @@ def step_prana_count_back_markup() -> ReplyKeyboardMarkup:
     )
 
     return builder.as_markup(resize_keyboard=True)
+
 
 def step_prana_time_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
@@ -174,6 +179,7 @@ def step_prana_time_back_markup() -> ReplyKeyboardMarkup:
 
     return builder.as_markup(resize_keyboard=True)
 
+
 def step_prana_reload_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
 
@@ -189,6 +195,7 @@ def step_prana_reload_back_markup() -> ReplyKeyboardMarkup:
     )
 
     return builder.as_markup(resize_keyboard=True)
+
 
 def step_prana_medit_back_markup() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
@@ -207,40 +214,42 @@ def step_prana_medit_back_markup() -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-#InllineButtons ---->
+# InllineButtons ---->
 
-def practice_stop_process_markup() -> InlineKeyboardMarkup:
+
+def practice_stop_process_markup(task_id: str = "") -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.PAUSE.value,
-            callback_data="meditation_pause",
+            callback_data=PracticeTimerCallback(action="pause", task_id=task_id).pack(),
         ),
     )
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.STOP.value,
-            callback_data="meditation_stop",
+            callback_data=PracticeTimerCallback(action="stop", task_id=task_id).pack(),
         ),
     )
-    
+
     return builder.as_markup(resize_keyboard=True)
 
-def practice_continue_process_markup() -> InlineKeyboardMarkup:
+
+def practice_continue_process_markup(task_id: str = "") -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.row(
         InlineKeyboardButton(
             text=PracticeContinueProcessButtons.RESUME.value,
-            callback_data="meditation_resume",
+            callback_data=PracticeTimerCallback(action="resume", task_id="").pack(),
         ),
     )
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.STOP.value,
-            callback_data="meditation_stop",
+            callback_data=PracticeTimerCallback(action="stop", task_id=task_id).pack(),
         ),
     )
-    
+
     return builder.as_markup(resize_keyboard=True)

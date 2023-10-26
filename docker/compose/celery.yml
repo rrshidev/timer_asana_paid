@@ -18,20 +18,20 @@ services:
     networks:
       - local
 
-  celery_beat:
-    image: embassy_bot:latest
-    container_name: bot_celery_beat
-    restart: unless-stopped
-    command: >
-      bash -c "celery -A app.celery_config:celery_app beat -S redbeat.RedBeatScheduler --loglevel=info"
-    volumes:
-      - ${PWD}:/app
-    env_file:
-      - ${PWD}/.env
-    depends_on:
-      - redis
-    networks:
-      - local
+  # celery_beat:
+  #   image: embassy_bot:latest
+  #   container_name: bot_celery_beat
+  #   restart: unless-stopped
+  #   command: >
+  #     bash -c "celery -A app.celery_config:celery_app beat --loglevel=info"
+  #   volumes:
+  #     - ${PWD}:/app
+  #   env_file:
+  #     - ${PWD}/.env
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - local
 
 
   # flower:
