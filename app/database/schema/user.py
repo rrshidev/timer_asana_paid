@@ -11,3 +11,5 @@ class User(
     tg_id: int
     tg_username: Optional[str] = None
     is_admin: bool = False
+    timer_paused: bool = False
+    timer_stoped: bool = False

@@ -7,7 +7,6 @@ from sqlalchemy import select, insert
 from app.database.orm import UserModel
 import bot.const.phrases as phrases
 from bot import markups
-from app.settings import application_settings
 from bot.filters import ButtonFilter
 from bot.buttons import ChoosePracticeButtons
 
@@ -20,9 +19,6 @@ async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     first_name = message.from_user.first_name
     markup = markups.user_main_markup()
     text = phrases.phrase_for_start_first_greeting(data=dict(name=first_name))
-    # sending image sticker
-    sticker = FSInputFile("static/buddha.webp")
-    await message.answer_sticker(sticker)
 
     # check if user exists
     user = (
@@ -41,6 +37,8 @@ async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
                     UserModel.tg_id: message.from_user.id,
                     UserModel.tg_username: message.from_user.username,
                     UserModel.is_admin: False,
+                    UserModel.timer_stoped: False,
+                    UserModel.timer_paused: False,
                 }
             )
         )
@@ -53,6 +51,10 @@ async def start(message: Message, bot: Bot, session: AsyncSession) -> None:
     #     ),
     # )
 
+    sticker = FSInputFile("static/buddha.webp")
+    await message.answer_sticker(
+        sticker=sticker,
+    )
     await message.answer(
         text=text,
         reply_markup=markup,
@@ -66,3 +68,14 @@ async def check(message: Message, bot: Bot) -> None:
     await message.answer(
         text="Ok",
     )
+
+
+# def get_string(tg_id: int, practice: str, event: str) -> str:
+    # return f"{tg_id}_{practice}_{event}"
+
+# RedisConnector.set(
+#     key=get_string(tg_id=134154141, practice="asana", event="timer_paused"),
+#     value=False,
+# )
+
+# value = RedisConnector.get(key=get_string(tg_id=134154141, practice="asana", event="timer_paused"))

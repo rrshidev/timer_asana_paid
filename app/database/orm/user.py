@@ -15,3 +15,5 @@ class UserModel(
     tg_id: Mapped[int]
     tg_username: Mapped[Optional[str_36]]
     is_admin: Mapped[bool_false]
+    timer_stoped: Mapped[bool_false]
+    timer_paused: Mapped[bool_false]
