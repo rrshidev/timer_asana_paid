@@ -217,38 +217,38 @@ def step_prana_medit_back_markup() -> ReplyKeyboardMarkup:
 # InllineButtons ---->
 
 
-def practice_stop_process_markup(task_id: str = "") -> InlineKeyboardMarkup:
+def practice_stop_process_markup() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.PAUSE.value,
-            callback_data=PracticeTimerCallback(action="pause", task_id=task_id).pack(),
+            callback_data=PracticeTimerCallback(action="pause").pack(),
         ),
     )
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.STOP.value,
-            callback_data=PracticeTimerCallback(action="stop", task_id=task_id).pack(),
+            callback_data=PracticeTimerCallback(action="stop").pack(),
         ),
     )
 
     return builder.as_markup(resize_keyboard=True)
 
 
-def practice_continue_process_markup(task_id: str = "") -> InlineKeyboardMarkup:
+def practice_continue_process_markup() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.row(
         InlineKeyboardButton(
             text=PracticeContinueProcessButtons.RESUME.value,
-            callback_data=PracticeTimerCallback(action="resume", task_id="").pack(),
+            callback_data=PracticeTimerCallback(action="resume").pack(),
         ),
     )
     builder.row(
         InlineKeyboardButton(
             text=PracticeStopProcessButtons.STOP.value,
-            callback_data=PracticeTimerCallback(action="stop", task_id=task_id).pack(),
+            callback_data=PracticeTimerCallback(action="stop").pack(),
         ),
     )
 

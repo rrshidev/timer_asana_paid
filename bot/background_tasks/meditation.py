@@ -59,9 +59,7 @@ async def tick(user_id: id) -> None:
             database=3,
             name=user_entry,
             mapping=dict(
-                total_sec=total_sec,
                 rest_sec=rest_sec,
-                timer_paused=0,
             ),
         )
 

@@ -40,7 +40,9 @@ async def meditation_practice(message: Message, state: FSMContext) -> None:
     )
 
 
-@choose_meditation_practice_router.message(Meditation.time, F.text.regexp(r"^\d+(:\d+)?$"))
+@choose_meditation_practice_router.message(
+    Meditation.time, F.text.regexp(r"^\d+(:\d+)?$")
+)
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     total_time = str_to_time(input=message.text)
 
@@ -56,12 +58,14 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
         reply_markup=markups.practice_stop_process_markup(),
     )
 
+    user_entry = get_redis_entry(
+        user_id=message.from_user.id,
+        practice=enums.Practices.MEDITATION.value,
+    )
+
     RedisStorage.hset(
         database=3,
-        name=get_redis_entry(
-            user_id=message.from_user.id,
-            practice=enums.Practices.MEDITATION.value,
-        ),
+        name=user_entry,
         mapping=dict(
             total_sec=int(total_time.total_seconds()),
             rest_sec=int(total_time.total_seconds()),
@@ -74,15 +78,22 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
         args=[message.from_user.id],
         countdown=0,
     )
-    edited = edit_message.edit_reply_markup(
-        reply_markup=markups.practice_stop_process_markup(task_id=task.id),
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            task_id=task.id,
+        ),
     )
-    logger.info(f"STATUS {edited}")
+    logger.info(f"MID {edit_message.message_id}")
 
     await state.set_state(Meditation.running)
 
 
-@choose_meditation_practice_router.message(Meditation.time, ~F.text.regexp(r"^\d+(:\d+)?$"))
+@choose_meditation_practice_router.message(
+    Meditation.time, ~F.text.regexp(r"^\d+(:\d+)?$")
+)
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     await message.answer(
         text="Wrong",
@@ -99,7 +110,6 @@ async def pause_mediation(
     bot: Bot,
 ) -> None:
     logger.info(f"GOTCHA {callback_data} |")
-    AsyncResult(callback_data.task_id).revoke()
 
     user_timer_data = RedisStorage.hgetall(
         database=3,
@@ -109,15 +119,17 @@ async def pause_mediation(
         ),
     )
 
+    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
     message_id: int = user_timer_data.get("message_id")
     total_time_str = get_time_str(seconds=int(user_timer_data.get("total_sec")))
+    rest_time_str = get_time_str(seconds=int(user_timer_data.get("rest_sec")))
 
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
         text=phrases.phrase_for_timer_message(
             total=total_time_str,
-            rest=total_time_str,
+            rest=rest_time_str,
             status=False,
         ),
         reply_markup=markups.practice_continue_process_markup(),
