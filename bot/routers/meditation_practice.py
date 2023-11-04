@@ -11,9 +11,7 @@ from bot import markups
 from bot.background_tasks import meditation_timer_task
 from bot.utils import get_redis_entry, str_to_time, get_time_str
 from bot.filters import ButtonFilter
-from bot.buttons import (
-    ChoosePracticeButtons,
-)
+from bot.buttons import ChoosePracticeButtons
 from bot.callbacks import PracticeTimerCallback
 from bot.const import enums
 
@@ -26,9 +24,7 @@ class Meditation(StatesGroup):
     running = State()
 
 
-@choose_meditation_practice_router.message(
-    ButtonFilter(button=ChoosePracticeButtons.MEDITATION)
-)
+@choose_meditation_practice_router.message(ButtonFilter(button=ChoosePracticeButtons.MEDITATION))
 async def meditation_practice(message: Message, state: FSMContext) -> None:
     text = phrases.phrase_meditation()
     markup = markups.step_back_markup()
@@ -40,9 +36,7 @@ async def meditation_practice(message: Message, state: FSMContext) -> None:
     )
 
 
-@choose_meditation_practice_router.message(
-    Meditation.time, F.text.regexp(r"^\d+(:\d+)?$")
-)
+@choose_meditation_practice_router.message(Meditation.time, F.text.regexp(r"^\d+(:\d+)?$"))
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     total_time = str_to_time(input=message.text)
 
@@ -52,7 +46,9 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     total_time_str = get_time_str(seconds=total_time.total_seconds())
     edit_message = await message.answer(
         text=phrases.phrase_for_timer_message(
-            total=total_time_str, rest=total_time_str, status=enums.TimerStatus.RUNNING
+            total=total_time_str, 
+            rest=total_time_str, 
+            status=enums.TimerStatus.RUNNING
         ),
         reply_markup=markups.practice_stop_process_markup(),
     )
@@ -185,7 +181,8 @@ async def stop_mediation(
 
 
 @choose_meditation_practice_router.callback_query(
-    Meditation.running, PracticeTimerCallback.filter(F.action == "resume")
+    Meditation.running, 
+    PracticeTimerCallback.filter(F.action == "resume")
 )
 async def resume_mediation(
     query: CallbackQuery,
