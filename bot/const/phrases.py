@@ -56,7 +56,9 @@ def phrase_for_notify_admins_about_some_event(
 
 
 def phrase_for_timer_message(
-    total: str, rest: str, status: TimerStatus = TimerStatus.RUNNING
+    total: str, 
+    rest: str, 
+    status: TimerStatus = TimerStatus.RUNNING,
 ):
     text = f"========================\n\nИдёт медитация\n\nВыбранное время: {total}"
     if rest:
@@ -66,3 +68,16 @@ def phrase_for_timer_message(
     return text
 
 
+def phrase_for_pranayama_timer_message(
+        count: int,
+        cnt: int,
+        prana_time: str,
+        reload_time: str,
+        meditation_time: str,
+        status: TimerStatus = TimerStatus.RUNNING,
+):
+
+
+    text = f"========================\n\nПрактика пранаямы!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}"
+    
+    return text

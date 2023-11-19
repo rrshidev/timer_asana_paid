@@ -6,8 +6,7 @@ from app.services import RedisStorage
 from app.logger import logger
 from bot import markups
 from bot.utils import get_redis_entry, get_time_str
-from bot.const import phrases
-from bot.const import enums
+from bot.const import phrases, enums
 
 
 async def tick(user_id: id) -> None:

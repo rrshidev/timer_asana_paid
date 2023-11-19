@@ -2,12 +2,13 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message, FSInputFile, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from celery.result import AsyncResult
 
 from app.logger import logger
 from app.services import RedisStorage
 import bot.const.phrases as phrases
 from bot import markups
-from bot.background_tasks import asanaprana_timer_task
+from bot.background_tasks import pranasana_timer_task
 from bot.utils import get_redis_entry, str_to_time, get_time_str
 from bot.filters import ButtonFilter
 from bot.buttons import ChoosePracticeButtons, StepBackButtons
@@ -122,29 +123,67 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await state.update_data(meditation_time=message.text)
     await message.answer_animation(gif)
    
-
     data = await state.get_data()
     
     count = int(data['count'])
-    prana_time = int(data['prana_time'])
-    reload_time = int(data['reload_time'])
-    meditation_time = int(data['meditation_time'])
-    
-    prana_time_str = str_to_time(input=prana_time)
-    reload_time_str = str_to_time(input=reload_time)
-    meditation_time_str = str_to_time(input==meditation_time)
+    prana_time = str(data['prana_time'])
+    reload_time = str(data['reload_time'])
+    meditation_time = str(data['meditation_time'])
+    cnt = count
+    right_prana_time = str_to_time(input=prana_time)
+    right_reload_time = str_to_time(input=reload_time)
+    right_meditation_time = str_to_time(input=meditation_time)
 
-    
-   
-    await state.clear()
-    await message.answer(
-        text=text,
-        reply_markup=markup
-        )  
+    prana_time_str = get_time_str(seconds=right_prana_time.total_seconds())
+    reload_time_str = get_time_str(seconds=right_reload_time.total_seconds())
+    meditation_time_str = get_time_str(seconds=right_meditation_time.total_seconds())
+    edit_message = await message.answer(
+        text=phrases.phrase_for_pranayama_timer_message(
+            count=count,
+            cnt=cnt,
+            prana_time=prana_time_str,
+            reload_time=reload_time_str,
+            meditation_time=meditation_time_str,
+            status=enums.TimerStatus.RUNNING,
+        ),
+        reply_markup=markups.practice_stop_process_markup(),
+    )
+
+    user_entry = get_redis_entry(
+        user_id=message.from_user.id,
+        practice=enums.Practices.PRANAYAMA.value,
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            count=count,
+            cnt=cnt,
+            prana_time=int(prana_time_str),
+            reload_time=int(reload_time_str),
+            meditation_time=int(meditation_time_str),
+            message_id=edit_message.message_id,
+        )
+    )
+
+    task: AsyncResult = pranasana_timer_task.apply_async(
+        args=[message.from_user.id],
+        countdown=0,
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mspping=dict(
+            task_id=task.id,
+        ),
+    )
+
+    await state.set_state(PranaYama.running)      
 
 
-@choose_pranayama_practice_router.message(PranaYama.meditation_time, ~F.text.isdigit()) 
-@choose_pranayama_practice_router.message(PranaYama.meditation_time, ~F.text.regexp(r'^[0-5]\d:[0-5]\d$'))
+@choose_pranayama_practice_router.message(PranaYama.meditation_time, ~F.text.regexp(r'\d+(:\d+)?$'))
 async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     await state.set_state(PranaYama.meditation_time)
     await message.answer(
@@ -152,163 +191,165 @@ async def wrong_meditation_time(message: Message, state: FSMContext) -> None:
     )
 
 
-async def practice_time(message, data):
-   
-    count = int(data['count'])
-    prana_time = int(data['prana_time'])
-    reload_time = int(data['reload_time'])
-    meditation_time = int(data['meditation_time'])
-    cnt = 0
-    count_while = count + 1
-    
-    while count_while > 0:
-        
-        if cnt != count:
-            
-            pt = prana_time
-            edit_message = await message.answer(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}')
-                
-            while pt > -1:
-                
-                if const.timer_stoped:
-                   
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-               
-                mins, secs = divmod(pt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-                
-                if not const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}\n\nОставшееся время: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    pt -= 1
-               
-                if const.timer_paused:
-                   
-                    try:
-                        await edit_message.edit_text(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}\n\nОставшееся время: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-                
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
-
-        if cnt != count:
-            
-            edit_message = await message.answer(text=f'Отдохни! Переведи дух!')
-            rt = reload_time
-           
-            while rt > -1:
-                
-                if const.timer_stoped:
-                    
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-                
-                mins, secs = divmod(rt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-               
-                if not const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Отдохни! Переведи дух!\n\n Сконцентрируйте в одной точке!\n\n\Оставшееся время отдыха: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    rt -= 1
-               
-                if const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Отдохни! Переведи дух!\n\n Сконцентрируйте в одной точке!\n\n\Оставшееся время отдыха: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-              
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
-
-        if cnt == count:
-           
-            edit_message = await message.answer(text=f'Медитация...')
-            mt = meditation_time
-           
-            while mt > -1:
-                
-                if const.timer_stoped:
-                    
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-                
-                mins, secs = divmod(mt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-               
-                if not const.timer_paused:
-                   
-                    try:
-                        await edit_message.edit_text(text=f'Медитация...\n\n иди на свет..\n\n Ом...\n\n Оставшееся время: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    mt -= 1
-                    
-                if const.timer_paused:
-                  
-                    try:
-                        await edit_message.edit_text(text=f'Медитация...\n\n иди на свет..\n\n Ом...\n\n Оставшееся время: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-               
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
-       
-        cnt += 1
-        count_while -= 1                
-
-    text = 'Практика окончена!'
-    markup = markups.choose_practice_markup()
-    
-    return await message.answer(text=text, reply_markup=markup)
-
-
 #Get callback Pause from markup
-@choose_pranayama_practice_router.callback_query(lambda c: c.data == 'meditation_pause')
-async def callback_pause(callback_query: types.CallbackQuery):
-    print('Pause world', const.timer_paused, const.timer_stoped)
-    if not const.timer_paused:
-        const.timer_paused = True
-        # await callback_query.message.edit_text(
-        #     text=timer_message(
-        #         total=const.timer_total,
-        #         rest=const.timer_rest,
-        #         status=False,
-        #     ),
-        #     reply_markup=markups.practice_continue_process_markup(),
-        # )
+@choose_pranayama_practice_router.callback_query(
+        PranaYama.running, PracticeTimerCallback.filter(F.action == "pause")
+)
+async def pause_pranayama(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+ ) -> None:
+    
+    print('Pause world')
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=get_redis_entry(
+            user_id=query.from_user.id,
+            practice=enums.Practices.PRANAYAMA.value,
+        ),
+    )
 
+    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
+    message_id: int = user_timer_data.get("message_id")
+    cnt = int(user_timer_data.get('cnt'))
+    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
+    reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
+    meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+    
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_pranayama_timer_message(
+            count=count,
+            cnt=cnt,
+            prana_time=prana_time_str,
+            reload_time=reload_time_str,
+            meditation_time=meditation_time_str,
+            status=enums.TimerStatus.RUNNING,
+        ),
+        reply_markup=markups.practice_continue_process_markup(),
+    )
+    await query.answer()
+
+
+
+@choose_pranayama_practice_router.callback_query(
+    PranaYama.running, PracticeTimerCallback.filter(F.action == "stop")
+)
+async def stop_pranayama(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+) -> None:
+    print('Stop world')
+    user_entry = get_redis_entry(
+        user_id=query.from_user.id,
+        practice=enums.Practices.PRANAYAMA.value,
+    )
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=user_entry,
+    )
+
+    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
+    message_id: int = user_timer_data.get("message")
+    count = int(user_timer_data.get('count'))
+    cnt = int(user_timer_data.get('cnt'))
+    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
+    reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
+    meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_pranayama_timer_message(
+            count=count,
+            cnt=cnt,
+            prana_time=prana_time_str,
+            reload_time=reload_time_str,
+            meditation_time=meditation_time_str,
+            status=enums.TimerStatus.STOPPED,
+        ),
+        reply_markup=None,
+    )
+    await bot.send_message(
+        chat_id=query.from_user.id,
+        text="Практика окончена!",
+        reply_markup=markups.choose_practice_markup(),
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            count=0,
+            cnt=0,
+            prana_time=0,
+            reload_time=0,
+            meditation_time=0,
+        ), 
+    )
+
+    await query.answer()
 
 #Get callback Resume markup
-@choose_pranayama_practice_router.callback_query(lambda c: c.data == 'meditation_resume')
-async def callback_resume(callback_query: types.CallbackQuery):
-    print('Resume world', const.timer_paused, const.timer_stoped)
+@choose_pranayama_practice_router.callback_query(
+        PranaYama.running,
+        PracticeTimerCallback.filter(F.action == "resume")
+)
+async def resume_pranayama(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+) -> None:
+    print('Resume world')
+    user_entry = get_redis_entry(
+        user_id=query.from_user.id,
+        practice=enums.Practices.PRANAYAMA.value,
+    )
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=user_entry,
+    )
 
-    if const.timer_paused:
-        const.timer_paused = False
-        # await callback_query.message.edit_text(
-        #     text=timer_message(
-        #         total=const.timer_total,
-        #         rest=const.timer_rest,
-        #         status=True,
-        #     ),
-        #     reply_markup=markups.practice_stop_process_markup(),
-        # )
+    message_id: int = user_timer_data.get("message_id")
+    count = int(user_timer_data.get('count'))
+    cnt = int(user_timer_data.get('cnt'))
+    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
+    reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
+    meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_pranayama_timer_message(
+            count=count,
+            cnt=cnt,
+            prana_time=prana_time_str,
+            reload_time=reload_time_str,
+            meditation_time=meditation_time_str,
+            status=enums.TimerStatus.RUNNING
+        ),
+        reply_markup=markups.practice_stop_process_markup(),
+    )
+
+    task: AsyncResult = pranasana_timer_task.apply_async(
+        args=[query.from_user.id],
+        countdown=0,
+    )
+
+    RedisStorage.hset(
+        database=3,
+        name=user_entry,
+        mapping=dict(
+            task_id=task.id,
+        ),
+    )
+
+    await query.answer()
 
 
-@choose_pranayama_practice_router.callback_query(lambda c: c.data == 'meditation_stop')
-async def callback_stop(callback_query: types.CallbackQuery):
-    print('Stop world', const.timer_paused, const.timer_stoped)
-    if not const.timer_stoped:
-        const.timer_stoped = True
