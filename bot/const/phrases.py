@@ -77,7 +77,18 @@ def phrase_for_pranayama_timer_message(
         status: TimerStatus = TimerStatus.RUNNING,
 ):
 
+    if count != cnt and prana_time != 0:
+        text = f"========================\n\nПрактика пранаямы!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}\n\nОставшееся время: {prana_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
 
-    text = f"========================\n\nПрактика пранаямы!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}"
-    
+    if count != cnt and reload_time !=0:
+        text = f"========================\n\nПереведи дух перед следующим упражнением!\n\nОставшееся время для отдыха: {reload_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
+
+    if count == cnt and meditation_time !=0:
+        text = f"========================\n\nМедитация\n\nОставшееся время: {meditation_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
     return text

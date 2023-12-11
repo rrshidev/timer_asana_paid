@@ -8,7 +8,7 @@ from bot import markups
 from bot.utils import get_redis_entry, get_time_str
 from bot.const import phrases, enums
 
-
+print('check_1')
 async def tick(user_id: id) -> None:
     from bot import bot_instance
 
@@ -16,144 +16,165 @@ async def tick(user_id: id) -> None:
         user_id=user_id,
         practice=enums.Practices.PRANAYAMA.value,
     )
-
-    while True:
-        start_time = perf_counter()
-        user_timer_data = RedisStorage.hgerall(
+    user_timer_data = RedisStorage.hgetall(
             database=3,
             name=user_entry,
         )
 
-        cnt: int = int(user_timer_data.get('cnt'))
-        prana_time: int = int(user_timer_data.get('prana_time'))
-        reload_time: int = int(user_timer_data.get('reload_time'))
-        meditation_time: inr = int(user_timer_data.get('meditation_time'))
-        message_id: int = int(user_timer_data.get("messsage_id"))
-
-        
-
-async def practice_time(message, data):
-   
-    count = int(data['count'])
-    prana_time = int(data['prana_time'])
-    reload_time = int(data['reload_time'])
-    meditation_time = int(data['meditation_time'])
-    cnt = 0
-    count_while = count + 1
+    count: int = int(user_timer_data.get('count'))
+    prana_time: int = int(user_timer_data.get('prana_time'))
+    reload_time: int = int(user_timer_data.get('reload_time'))
+    meditation_time: int = int(user_timer_data.get('meditation_time'))
+    message_id: int = int(user_timer_data.get("message_id"))
     
-    while count_while > 0:
-        
-        if cnt != count:
-            
-            pt = prana_time
-            edit_message = await message.answer(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}')
-                
-            while pt > -1:
-                
-                if const.timer_stoped:
-                   
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-               
-                mins, secs = divmod(pt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-                
-                if not const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}\n\nОставшееся время: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    pt -= 1
-               
-                if const.timer_paused:
-                   
-                    try:
-                        await edit_message.edit_text(text=f'Идёт практика пранаямы: упражнение №{cnt + 1}\n\nОставшееся время: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-                
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
+    base_prana_time = prana_time
+    base_reload_time = reload_time
 
-        if cnt != count:
-            
-            edit_message = await message.answer(text=f'Отдохни! Переведи дух!')
-            rt = reload_time
-           
-            while rt > -1:
-                
-                if const.timer_stoped:
-                    
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-                
-                mins, secs = divmod(rt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-               
-                if not const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Отдохни! Переведи дух!\n\n Сконцентрируйте в одной точке!\n\n\Оставшееся время отдыха: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    rt -= 1
-               
-                if const.timer_paused:
-                    
-                    try:
-                        await edit_message.edit_text(text=f'Отдохни! Переведи дух!\n\n Сконцентрируйте в одной точке!\n\n\Оставшееся время отдыха: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-              
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
-
-        if cnt == count:
-           
-            edit_message = await message.answer(text=f'Медитация...')
-            mt = meditation_time
-           
-            while mt > -1:
-                
-                if const.timer_stoped:
-                    
-                    text = "Таймер остановлен!"
-                    markup = markups.choose_practice_markup()
-                    break
-                
-                mins, secs = divmod(mt, 60)
-                timer = '{:02d}:{:02d}'.format(mins, secs)
-               
-                if not const.timer_paused:
-                   
-                    try:
-                        await edit_message.edit_text(text=f'Медитация...\n\n иди на свет..\n\n Ом...\n\n Оставшееся время: {timer}', reply_markup=markups.practice_stop_process_markup())
-                    except:
-                        pass
-                    mt -= 1
-                    
-                if const.timer_paused:
-                  
-                    try:
-                        await edit_message.edit_text(text=f'Медитация...\n\n иди на свет..\n\n Ом...\n\n Оставшееся время: {timer}', reply_markup=markups.practice_continue_process_markup())
-                    except:
-                        pass
-               
-                time_to_wait = 1 - time.time() % 1
-                time.sleep(time_to_wait)
-       
-        cnt += 1
-        count_while -= 1                
-
-    text = 'Практика окончена!'
-    markup = markups.choose_practice_markup()
     
-    return await message.answer(text=text, reply_markup=markup)
+    cnt_1 = 0
+    count_while = count
+
+    while True:
+        start_time = perf_counter()
+        if count_while > 0:
+                
+            rest_pt = base_prana_time
+            rest_rt = base_reload_time
+            rest_mt = meditation_time
+            cnt_1 += 1
+            
+            print('check_1--->', cnt_1, type(cnt_1))
+            
+            while True:
+                start_time = perf_counter()
+                
+                if rest_pt > 0:
+                    rest_pt -= 1
+                
+                await bot_instance.edit_message_text(
+                    chat_id=user_id,
+                    message_id=message_id,
+                    text=phrases.phrase_for_pranayama_timer_message(
+                        count=count,
+                        cnt=cnt_1,
+                        prana_time=get_time_str(seconds=rest_pt),
+                        reload_time=get_time_str(seconds=rest_rt),
+                        meditation_time=get_time_str(seconds=rest_mt),
+                        status=enums.TimerStatus.RUNNING, 
+                    ),
+                    reply_markup=markups.practice_stop_process_markup(),
+                )
+
+                RedisStorage.hset(
+                    database=3,
+                    name=user_entry,
+                    mapping=dict(
+                        cnt=cnt_1,
+                        prana_time=rest_pt,
+                    ),
+                )
+
+                if rest_pt == 0:
+                    await bot_instance.send_message(
+                        chat_id=user_id,
+                        text="Переведи дух!",
+                    )
+                    break
+
+                end_time = perf_counter()
+                await asyncio.sleep(max(1 - (end_time - start_time), 0))
+
+            while True:
+                start_time = perf_counter()
+                
+                
+                if rest_rt > 0:
+                    rest_rt -= 1        
+                
+                await bot_instance.edit_message_text(
+                    chat_id=user_id,
+                    message_id=message_id,
+                    text=phrases.phrase_for_pranayama_timer_message(
+                        count=count,
+                        cnt=cnt_1,
+                        prana_time=get_time_str(seconds=rest_pt),
+                        reload_time=get_time_str(seconds=rest_rt),
+                        meditation_time=get_time_str(seconds=rest_mt),
+                        status=enums.TimerStatus.RUNNING, 
+                    ),
+                    reply_markup=markups.practice_stop_process_markup(),
+                )
+
+                RedisStorage.hset(
+                    database=3,
+                    name=user_entry,
+                    mapping=dict(
+                        reload_time=rest_rt,
+                    ),
+                )
+                
+                if rest_rt == 0:
+                    await bot_instance.send_message(
+                        chat_id=user_id,
+                        text="Работаем дальше!",
+                    )
+                    break
+                
+            
+                end_time = perf_counter()
+                await asyncio.sleep(max(1 - (end_time - start_time), 0))
+            count_while -= 1
 
 
+        if count_while == 0:
+            while True:
+                start_time = perf_counter()
+                
+                if rest_mt > 0:
+                    rest_mt -= 1
+                
+                await bot_instance.edit_message_text(
+                    chat_id=user_id,
+                    message_id=message_id,
+                    text=phrases.phrase_for_pranayama_timer_message(
+                        count=count,
+                        cnt=cnt_1,
+                        prana_time=get_time_str(seconds=rest_pt),
+                        reload_time=get_time_str(seconds=rest_rt),
+                        meditation_time=get_time_str(seconds=rest_mt),
+                        status=enums.TimerStatus.RUNNING, 
+                    ),
+                    reply_markup=markups.practice_stop_process_markup(),
+                )
+
+                RedisStorage.hset(
+                    database=3,
+                    name=user_entry,
+                    mapping=dict(
+                        meditation_time=rest_mt,
+                    ),
+                )
+
+                if rest_mt == 0:
+                    break
+
+                end_time = perf_counter()
+                await asyncio.sleep(max(1 - (end_time - start_time), 0))
+                
+
+
+
+        if count_while == 0 and rest_mt == 0: 
+            
+            await bot_instance.send_message(
+                chat_id=user_id,
+                text="Практика окончена!",
+                reply_markup=markups.choose_practice_markup(),
+            )
+            break
+
+        end_time = perf_counter()
+        await asyncio.sleep(max(1 - (end_time - start_time), 0))
 
 @celery_app.task()
 def timer(user_id: int) -> None:

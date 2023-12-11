@@ -44,6 +44,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await message.answer_sticker(sticker)
 
     total_time_str = get_time_str(seconds=total_time.total_seconds())
+    print('total_time_str', type(total_time_str))
     edit_message = await message.answer(
         text=phrases.phrase_for_timer_message(
             total=total_time_str, 

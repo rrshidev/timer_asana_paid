@@ -124,15 +124,15 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await message.answer_animation(gif)
    
     data = await state.get_data()
-    
+    print('data of prana time:--->', data['prana_time'], type(data['prana_time']))
     count = int(data['count'])
-    prana_time = str(data['prana_time'])
-    reload_time = str(data['reload_time'])
-    meditation_time = str(data['meditation_time'])
-    cnt = count
-    right_prana_time = str_to_time(input=prana_time)
-    right_reload_time = str_to_time(input=reload_time)
-    right_meditation_time = str_to_time(input=meditation_time)
+    prana_time = data['prana_time']
+    reload_time = data['reload_time']
+    meditation_time = data['meditation_time']
+    cnt = 1
+    right_prana_time = str_to_time(prana_time)
+    right_reload_time = str_to_time(reload_time)
+    right_meditation_time = str_to_time(meditation_time)
 
     prana_time_str = get_time_str(seconds=right_prana_time.total_seconds())
     reload_time_str = get_time_str(seconds=right_reload_time.total_seconds())
@@ -153,16 +153,16 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
         user_id=message.from_user.id,
         practice=enums.Practices.PRANAYAMA.value,
     )
-
+    print('prana_time_type', type(prana_time), type(prana_time_str))
     RedisStorage.hset(
         database=3,
         name=user_entry,
         mapping=dict(
             count=count,
             cnt=cnt,
-            prana_time=int(prana_time_str),
-            reload_time=int(reload_time_str),
-            meditation_time=int(meditation_time_str),
+            prana_time=int(right_prana_time.total_seconds()),
+            reload_time=int(right_reload_time.total_seconds()),
+            meditation_time=int(right_meditation_time.total_seconds()),
             message_id=edit_message.message_id,
         )
     )
@@ -175,7 +175,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     RedisStorage.hset(
         database=3,
         name=user_entry,
-        mspping=dict(
+        mapping=dict(
             task_id=task.id,
         ),
     )
@@ -213,6 +213,7 @@ async def pause_pranayama(
 
     AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
     message_id: int = user_timer_data.get("message_id")
+    count = int(user_timer_data.get('count'))
     cnt = int(user_timer_data.get('cnt'))
     prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
     reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
@@ -255,7 +256,7 @@ async def stop_pranayama(
     )
 
     AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
-    message_id: int = user_timer_data.get("message")
+    message_id: int = user_timer_data.get("message_id")
     count = int(user_timer_data.get('count'))
     cnt = int(user_timer_data.get('cnt'))
     prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
