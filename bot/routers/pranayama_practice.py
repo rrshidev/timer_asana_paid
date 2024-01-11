@@ -21,7 +21,7 @@ choose_pranayama_practice_router = Router()
 
 class PranaYama(StatesGroup):
     count = State()
-    prana_time = State()
+    practice_time = State()
     reload_time = State()
     meditation_time = State()
     running = State()
@@ -50,10 +50,10 @@ async def enter_prana_count(message: Message, state: FSMContext) -> None:
     text = phrases.phrase_prana_time()
     markup = markups.step_prana_count_back_markup()
    
-    await state.set_state(PranaYama.prana_time)
+    await state.set_state(PranaYama.practice_time)
     await message.answer(
         text=text,
-        reply_markup=markup
+        reply_markup=markup,
     )  
 
 
@@ -66,14 +66,14 @@ async def wrong_prana_count(message: Message, state: FSMContext) -> None:
     )
 
 
-@choose_pranayama_practice_router.message(PranaYama.prana_time, F.text.regexp(r'\d+(:\d+)?$'))
+@choose_pranayama_practice_router.message(PranaYama.practice_time, F.text.regexp(r'\d+(:\d+)?$'))
 @choose_pranayama_practice_router.message(ButtonFilter(button=StepBackButtons.PRANARELOADBACK))
 async def enter_prana_time(message: Message, state: FSMContext) -> None:
    
     text = phrases.phrase_prana_reload()
     markup = markups.step_prana_time_back_markup()
       
-    await state.update_data(prana_time=message.text)
+    await state.update_data(practice_time=message.text)
     await state.set_state(PranaYama.reload_time)
     await message.answer(
         text=text,
@@ -81,10 +81,10 @@ async def enter_prana_time(message: Message, state: FSMContext) -> None:
     )  
 
 
-@choose_pranayama_practice_router.message(PranaYama.prana_time, ~F.text.regexp(r'\d+(:\d+)?$'))
+@choose_pranayama_practice_router.message(PranaYama.practice_time, ~F.text.regexp(r'\d+(:\d+)?$'))
 async def wrong_prana_time(message: Message, state: FSMContext) -> None:
     
-    await state.set_state(PranaYama.prana_time)
+    await state.set_state(PranaYama.practice_time)
     await message.answer(
         text=phrases.phrase_wrong_prana_asana_time(),
     )
@@ -100,7 +100,7 @@ async def enter_reload_time(message: Message, state: FSMContext) -> None:
     await state.set_state(PranaYama.meditation_time)
     await message.answer(
         text=text,
-        reply_markup=markup
+        reply_markup=markup,
     )  
 
 
@@ -111,7 +111,6 @@ async def wrong_reload_time(message: Message, state: FSMContext) -> None:
     await message.answer(
         text=phrases.phrase_wrong_prana_asana_time()
     )
-
 
 @choose_pranayama_practice_router.message(PranaYama.meditation_time, F.text.regexp(r'\d+(:\d+)?$'))
 async def enter_meditation_time(message: Message, state: FSMContext) -> None:
@@ -124,26 +123,29 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     await message.answer_animation(gif)
    
     data = await state.get_data()
-    print('data of prana time:--->', data['prana_time'], type(data['prana_time']))
     count = int(data['count'])
-    prana_time = data['prana_time']
+    practice_time = data['practice_time']
     reload_time = data['reload_time']
     meditation_time = data['meditation_time']
-    cnt = 1
-    right_prana_time = str_to_time(prana_time)
+    
+    cnt = 0
+    
+    right_practice_time = str_to_time(practice_time)
     right_reload_time = str_to_time(reload_time)
     right_meditation_time = str_to_time(meditation_time)
 
-    prana_time_str = get_time_str(seconds=right_prana_time.total_seconds())
+    practice_time_str = get_time_str(seconds=right_practice_time.total_seconds())
     reload_time_str = get_time_str(seconds=right_reload_time.total_seconds())
     meditation_time_str = get_time_str(seconds=right_meditation_time.total_seconds())
+    flag = 'go'
     edit_message = await message.answer(
         text=phrases.phrase_for_pranayama_timer_message(
             count=count,
             cnt=cnt,
-            prana_time=prana_time_str,
+            practice_time=practice_time_str,
             reload_time=reload_time_str,
             meditation_time=meditation_time_str,
+            flag=flag,
             status=enums.TimerStatus.RUNNING,
         ),
         reply_markup=markups.practice_stop_process_markup(),
@@ -153,16 +155,17 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
         user_id=message.from_user.id,
         practice=enums.Practices.PRANAYAMA.value,
     )
-    print('prana_time_type', type(prana_time), type(prana_time_str))
+    
     RedisStorage.hset(
         database=3,
         name=user_entry,
         mapping=dict(
             count=count,
             cnt=cnt,
-            prana_time=int(right_prana_time.total_seconds()),
+            practice_time=int(right_practice_time.total_seconds()),
             reload_time=int(right_reload_time.total_seconds()),
             meditation_time=int(right_meditation_time.total_seconds()),
+            flag=flag,
             message_id=edit_message.message_id,
         )
     )
@@ -200,52 +203,8 @@ async def pause_pranayama(
     callback_data: PracticeTimerCallback,
     state: FSMContext,
     bot: Bot,
- ) -> None:
-    
-    print('Pause world')
-    user_timer_data = RedisStorage.hgetall(
-        database=3,
-        name=get_redis_entry(
-            user_id=query.from_user.id,
-            practice=enums.Practices.PRANAYAMA.value,
-        ),
-    )
-
-    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
-    message_id: int = user_timer_data.get("message_id")
-    count = int(user_timer_data.get('count'))
-    cnt = int(user_timer_data.get('cnt'))
-    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
-    reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
-    meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
-    
-    await bot.edit_message_text(
-        chat_id=query.from_user.id,
-        message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
-            count=count,
-            cnt=cnt,
-            prana_time=prana_time_str,
-            reload_time=reload_time_str,
-            meditation_time=meditation_time_str,
-            status=enums.TimerStatus.RUNNING,
-        ),
-        reply_markup=markups.practice_continue_process_markup(),
-    )
-    await query.answer()
-
-
-
-@choose_pranayama_practice_router.callback_query(
-    PranaYama.running, PracticeTimerCallback.filter(F.action == "stop")
-)
-async def stop_pranayama(
-    query: CallbackQuery,
-    callback_data: PracticeTimerCallback,
-    state: FSMContext,
-    bot: Bot,
 ) -> None:
-    print('Stop world')
+    
     user_entry = get_redis_entry(
         user_id=query.from_user.id,
         practice=enums.Practices.PRANAYAMA.value,
@@ -259,9 +218,10 @@ async def stop_pranayama(
     message_id: int = user_timer_data.get("message_id")
     count = int(user_timer_data.get('count'))
     cnt = int(user_timer_data.get('cnt'))
-    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
+    practice_time_str = get_time_str(seconds=int(user_timer_data.get('practice_time')))
     reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
     meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+    flag = str(user_timer_data.get('flag'))
 
     await bot.edit_message_text(
         chat_id=query.from_user.id,
@@ -269,10 +229,58 @@ async def stop_pranayama(
         text=phrases.phrase_for_pranayama_timer_message(
             count=count,
             cnt=cnt,
-            prana_time=prana_time_str,
+            practice_time=practice_time_str,
+            reload_time=reload_time_str,
+            meditation_time=meditation_time_str,
+            status=enums.TimerStatus.PAUSED,
+            flag = flag,
+        ),
+        reply_markup=markups.practice_continue_process_markup(),
+    )
+
+    await query.answer()
+
+
+@choose_pranayama_practice_router.callback_query(
+    PranaYama.running, 
+    PracticeTimerCallback.filter(F.action == "stop")
+)
+async def stop_pranayama(
+    query: CallbackQuery,
+    callback_data: PracticeTimerCallback,
+    state: FSMContext,
+    bot: Bot,
+) -> None:
+    
+    user_entry = get_redis_entry(
+        user_id=query.from_user.id,
+        practice=enums.Practices.PRANAYAMA.value,
+    )
+    user_timer_data = RedisStorage.hgetall(
+        database=3,
+        name=user_entry,
+    )
+
+    AsyncResult(user_timer_data.get("task_id")).revoke(terminate=True)
+    message_id: int = user_timer_data.get("message_id")
+    count = int(user_timer_data.get('count'))
+    cnt = int(user_timer_data.get('cnt'))
+    practice_time_str = get_time_str(seconds=int(user_timer_data.get('practice_time')))
+    reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
+    meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+    flag = str(user_timer_data.get('flag'))
+
+    await bot.edit_message_text(
+        chat_id=query.from_user.id,
+        message_id=message_id,
+        text=phrases.phrase_for_pranayama_timer_message(
+            count=count,
+            cnt=cnt,
+            practice_time=practice_time_str,
             reload_time=reload_time_str,
             meditation_time=meditation_time_str,
             status=enums.TimerStatus.STOPPED,
+            flag = flag,
         ),
         reply_markup=None,
     )
@@ -288,7 +296,7 @@ async def stop_pranayama(
         mapping=dict(
             count=0,
             cnt=0,
-            prana_time=0,
+            practice_time=0,
             reload_time=0,
             meditation_time=0,
         ), 
@@ -307,7 +315,7 @@ async def resume_pranayama(
     state: FSMContext,
     bot: Bot,
 ) -> None:
-    print('Resume world')
+    
     user_entry = get_redis_entry(
         user_id=query.from_user.id,
         practice=enums.Practices.PRANAYAMA.value,
@@ -320,9 +328,10 @@ async def resume_pranayama(
     message_id: int = user_timer_data.get("message_id")
     count = int(user_timer_data.get('count'))
     cnt = int(user_timer_data.get('cnt'))
-    prana_time_str = get_time_str(seconds=int(user_timer_data.get('prana_time')))
+    practice_time_str = get_time_str(seconds=int(user_timer_data.get('practice_time')))
     reload_time_str = get_time_str(seconds=int(user_timer_data.get('reload_time')))
     meditation_time_str = get_time_str(seconds=int(user_timer_data.get('meditation_time')))
+    flag = str(user_timer_data.get('flag'))
 
     await bot.edit_message_text(
         chat_id=query.from_user.id,
@@ -330,10 +339,11 @@ async def resume_pranayama(
         text=phrases.phrase_for_pranayama_timer_message(
             count=count,
             cnt=cnt,
-            prana_time=prana_time_str,
+            practice_time=practice_time_str,
             reload_time=reload_time_str,
             meditation_time=meditation_time_str,
-            status=enums.TimerStatus.RUNNING
+            status=enums.TimerStatus.RUNNING,
+            flag = flag,
         ),
         reply_markup=markups.practice_stop_process_markup(),
     )

@@ -1,6 +1,7 @@
 from aiogram import Router, Bot
 from aiogram.types import Message, FSInputFile, MenuButtonWebApp, WebAppInfo
 from aiogram.filters import Command, ExceptionMessageFilter
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert
 

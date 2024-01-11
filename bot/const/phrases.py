@@ -69,26 +69,48 @@ def phrase_for_timer_message(
 
 
 def phrase_for_pranayama_timer_message(
-        count: int,
-        cnt: int,
-        prana_time: str,
-        reload_time: str,
-        meditation_time: str,
-        status: TimerStatus = TimerStatus.RUNNING,
+    count: int,
+    cnt: int,
+    practice_time: str,
+    reload_time: str,
+    meditation_time: str,
+    flag: str,
+    status: TimerStatus = TimerStatus.RUNNING,
 ):
 
-    if count != cnt and prana_time != 0:
-        text = f"========================\n\nПрактика пранаямы!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}\n\nОставшееся время: {prana_time}"
+    if flag == 'go':
+        print('PRANA_TIME---->', practice_time)
+        text = f"========================\n\nПрактика пранаямы!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}\n\nОставшееся время: {practice_time}"
         text += f"\n\n==========[ {status.value} ]=========="
         return text
 
-    if count != cnt and reload_time !=0:
+    if flag == 'relax':
+        print('reload_TIME---->', reload_time)
         text = f"========================\n\nПереведи дух перед следующим упражнением!\n\nОставшееся время для отдыха: {reload_time}"
         text += f"\n\n==========[ {status.value} ]=========="
         return text
 
-    if count == cnt and meditation_time !=0:
+    if flag == 'meditation':
+        print('meditation_TIME---->', meditation_time)
         text = f"========================\n\nМедитация\n\nОставшееся время: {meditation_time}"
         text += f"\n\n==========[ {status.value} ]=========="
         return text
-    return text
+    
+    if flag == 'asana_go':
+        print('ASANA_TIME---->', practice_time)
+        text = f"========================\n\nПрактика асаны!\n\nВсего упражнений: {count} \n\nУпражнение №: {cnt}\n\nОставшееся время: {practice_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
+
+    if flag == 'asana_relax':
+        print('reload_TIME---->', reload_time)
+        text = f"========================\n\nКомпенсурующая асана или шавасана!\n\nОставшееся время для отдыха: {reload_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
+
+    if flag == 'asana_meditation':
+        print('meditation_TIME---->', meditation_time)
+        text = f"========================\n\nШавасана\n\nОставшееся время: {meditation_time}"
+        text += f"\n\n==========[ {status.value} ]=========="
+        return text
+    

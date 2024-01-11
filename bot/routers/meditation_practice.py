@@ -208,7 +208,9 @@ async def resume_mediation(
         chat_id=query.from_user.id,
         message_id=message_id,
         text=phrases.phrase_for_timer_message(
-            total=total_time_str, rest=rest_time_str, status=enums.TimerStatus.RUNNING
+            total=total_time_str, 
+            rest=rest_time_str, 
+            status=enums.TimerStatus.RUNNING,
         ),
         reply_markup=markups.practice_stop_process_markup(),
     )

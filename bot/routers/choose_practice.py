@@ -1,6 +1,8 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import or_f
+from aiogram.fsm.context import FSMContext
+
 
 import bot.const.phrases as phrases
 from bot import markups
@@ -18,7 +20,8 @@ choose_practice_router = Router()
         ButtonFilter(button=StepBackButtons.STEPBACK)
     )
 )
-async def choose_practice(message: Message) -> None:
+async def choose_practice(message: Message, state: FSMContext) -> None:
+    await state.clear()
     text = phrases.phrase_for_choose_practice()
     markup = markups.choose_practice_markup()
 
