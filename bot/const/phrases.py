@@ -34,7 +34,7 @@ def phrase_prana_reload():
 def phrase_wrong_prana_asana_time():
     return 'Не похоже на целое число или на формат 00:00, где первая пара чисел - минуты, вторая пара чисел - секунды.\n\nПовтори ввод и продолжи формировать комплекс.'
 
-def phrase_prana_meditaion_time():
+def phrase_prana_meditation_time():
     return 'Введи количество минут на медитацию после пранаямы.\n\n\nМожно ввести целое число - это будет количество минут.\nМожно ввести значение в формате 00:00, \nгде первая пара числе - это минуты,\n а вторая - секунды.'
 
 def phrase_meditation():
@@ -68,7 +68,7 @@ def phrase_for_timer_message(
     return text
 
 
-def phrase_for_pranayama_timer_message(
+def phrase_for_pranasana_timer_message(
     count: int,
     cnt: int,
     practice_time: str,

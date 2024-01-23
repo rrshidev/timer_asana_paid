@@ -8,7 +8,7 @@ from app.logger import logger
 from app.services import RedisStorage
 import bot.const.phrases as phrases
 from bot import markups
-from bot.background_tasks import pranasana_timer_task
+from bot.background_tasks import pranayama_timer_task
 from bot.utils import get_redis_entry, str_to_time, get_time_str
 from bot.filters import ButtonFilter
 from bot.buttons import ChoosePracticeButtons, StepBackButtons
@@ -93,7 +93,7 @@ async def wrong_prana_time(message: Message, state: FSMContext) -> None:
 @choose_pranayama_practice_router.message(ButtonFilter(button=StepBackButtons.PRANAMEDITBACK))
 async def enter_reload_time(message: Message, state: FSMContext) -> None:
  
-    text = phrases.phrase_prana_meditaion_time()
+    text = phrases.phrase_prana_meditation_time()
     markup = markups.step_prana_reload_back_markup()
    
     await state.update_data(reload_time=message.text)
@@ -139,7 +139,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
     meditation_time_str = get_time_str(seconds=right_meditation_time.total_seconds())
     flag = 'go'
     edit_message = await message.answer(
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -170,7 +170,7 @@ async def enter_meditation_time(message: Message, state: FSMContext) -> None:
         )
     )
 
-    task: AsyncResult = pranasana_timer_task.apply_async(
+    task: AsyncResult = pranayama_timer_task.apply_async(
         args=[message.from_user.id],
         countdown=0,
     )
@@ -226,7 +226,7 @@ async def pause_pranayama(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -273,7 +273,7 @@ async def stop_pranayama(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -336,7 +336,7 @@ async def resume_pranayama(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -348,7 +348,7 @@ async def resume_pranayama(
         reply_markup=markups.practice_stop_process_markup(),
     )
 
-    task: AsyncResult = pranasana_timer_task.apply_async(
+    task: AsyncResult = pranayama_timer_task.apply_async(
         args=[query.from_user.id],
         countdown=0,
     )

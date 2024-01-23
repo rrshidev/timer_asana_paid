@@ -8,7 +8,7 @@ from app.logger import logger
 from app.services import RedisStorage
 import bot.const.phrases as phrases
 from bot import markups
-from bot.background_tasks import pranasana_timer_task
+from bot.background_tasks import asana_timer_task
 from bot.utils import get_redis_entry, str_to_time, get_time_str
 from bot.filters import ButtonFilter
 from bot.buttons import ChoosePracticeButtons, StepBackButtons
@@ -45,8 +45,7 @@ async def asana_practice(message: Message, state:FSMContext) -> None:
 @choose_asana_practice_router.message(ButtonFilter(button=StepBackButtons.ASANATIMEBACK))
 async def enter_asana_count(message: Message, state: FSMContext) -> None:
    
-    await state.update_data(count=message.text)
-  
+    await state.update_data(count=message.text)  
     text = phrases.phrase_asana_time()
     markup = markups.step_asana_count_back_markup()
   
@@ -138,9 +137,9 @@ async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
     reload_time_str = get_time_str(seconds=right_reload_time.total_seconds())
     meditation_time_str = get_time_str(seconds=right_meditation_time.total_seconds())
     flag = 'asana_go'
-    print(flag)
+    print('Flag in asana_practice:',flag, 'count:', count)
     edit_message = await message.answer(
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -171,7 +170,7 @@ async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
         )
     )
 
-    task: AsyncResult = pranasana_timer_task.apply_async(
+    task: AsyncResult = asana_timer_task.apply_async(
         args=[message.from_user.id],
         countdown=0,
     )
@@ -183,7 +182,7 @@ async def enter_shavasana_time(message: Message, state: FSMContext) -> None:
             task_id=task.id,
         ),
     )
-    print(flag)
+
     await state.set_state(Asana.running)
 
 
@@ -201,7 +200,7 @@ async def wrong_shavasana_time(message: Message, state: FSMContext) -> None:
 )
 async def pause_asana(
     query: CallbackQuery,
-    callback_query: PracticeTimerCallback,
+    callback_data: PracticeTimerCallback,
     state: FSMContext,
     bot: Bot,
 ) -> None:
@@ -227,7 +226,7 @@ async def pause_asana(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -254,7 +253,7 @@ async def stop_asana(
     
     user_entry = get_redis_entry(
         user_id=query.from_user.id,
-        practice=enums.Practices.PRANAYAMA.value,
+        practice=enums.Practices.ASANA.value,
     )
     user_timer_data = RedisStorage.hgetall(
         database=3,
@@ -273,7 +272,7 @@ async def stop_asana(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -336,7 +335,7 @@ async def resume_asana(
     await bot.edit_message_text(
         chat_id=query.from_user.id,
         message_id=message_id,
-        text=phrases.phrase_for_pranayama_timer_message(
+        text=phrases.phrase_for_pranasana_timer_message(
             count=count,
             cnt=cnt,
             practice_time=practice_time_str,
@@ -348,7 +347,7 @@ async def resume_asana(
         reply_markup=markups.practice_stop_process_markup(),
     )
 
-    task: AsyncResult = pranasana_timer_task.apply_async(
+    task: AsyncResult = asana_timer_task.apply_async(
         args=[query.from_user.id],
         countdown=0,
     )
