@@ -126,7 +126,7 @@ async def tick(user_id: id) -> None:
             
                 end_time = perf_counter()
                 await asyncio.sleep(max(1 - (end_time - start_time), 0))
-        
+        print(count_while)
         if count_while == 0:
 
             await bot_instance.send_message(

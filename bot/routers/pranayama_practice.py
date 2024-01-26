@@ -343,7 +343,7 @@ async def resume_pranayama(
             reload_time=reload_time_str,
             meditation_time=meditation_time_str,
             status=enums.TimerStatus.RUNNING,
-            flag = flag,
+            flag=flag,
         ),
         reply_markup=markups.practice_stop_process_markup(),
     )
