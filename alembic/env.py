@@ -58,8 +58,6 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     url = database_settings.url
-    print("DATABASE SETTINGS: ", database_settings.DATABASE_NAME, database_settings.DATABASE_USERNAME, database_settings.DATABASE_PASSWORD)
-    print("URL: ", database_settings.url)
     context.configure(
         url=url,
         connection=connection,
@@ -79,6 +77,14 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    print(
+        "DATABASE SETTINGS: ",
+        database_settings.DATABASE_NAME,
+        database_settings.DATABASE_USERNAME,
+        database_settings.DATABASE_PASSWORD,
+    )
+    print("URL: ", database_settings.url)
+
     asyncio.run(run_async_migrations())
 
 
